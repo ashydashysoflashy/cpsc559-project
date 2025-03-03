@@ -35,9 +35,9 @@ import jakarta.validation.constraints.Size;
     })
 })
 public class User {
-    // ================
-    // Database Columns
-    // ================
+    // ===============
+    // Database Fields
+    // ===============
 
     // Field 'id' is a PRIMARY KEY and the id auto-increments in the database
     @Id 
@@ -81,12 +81,21 @@ public class User {
     // Constructors
     // ============
 
-    // Default constructor that is required for JPA
+    /**
+     * Default constructor that is required for JPA.
+     */
     public User() {
 
     }
 
-    // Constructor to initalize a new User object
+    /**
+     * Constructor to initalize a new User object with specific parameters
+     * 
+     * @param name The user's name
+     * @param username The user's chosen username
+     * @param email The user's email
+     * @param password The user's password
+     */
     public User(String name, String username, String email, String password) {
         this.name = name;
         this.username = username;
@@ -98,26 +107,56 @@ public class User {
     // Getters
     // =======
 
+    /**
+     * Gets the user's ID.
+     * 
+     * @return The ID of the user.
+     */
     public Long getId() {
         return id;
     }
 
+    /**
+     * Gets the user's name.
+     * 
+     * @return The name of the user.
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Gets the user's username.
+     * 
+     * @return The username of the user.
+     */
     public String getUsername() {
         return username;
     }
 
+    /**
+     * Gets the user's email.
+     * 
+     * @return The email of the user.
+     */
     public String getEmail() {
         return email;
     }
 
+    /**
+     * Gets the user's password.
+     * 
+     * @return The password of the user.
+     */
     public String getPassword() {
         return password;
     }
 
+    /**
+     * Gets the user's role(s)
+     * 
+     * @return The role(s) of the user.
+     */
     public Set<Role> getRoles() {
         return roles;
     }
@@ -126,26 +165,56 @@ public class User {
     // Setters
     // =======
 
+    /**
+     * Sets the user's ID.
+     * 
+     * @param id The ID assigned to the user.
+     */
     public void setId(Long id) {
         this.id = id;
     }
 
+    /**
+     * Sets the user's name.
+     * 
+     * @param name The name assigned to the user.
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Sets the user's username.
+     * 
+     * @param username The username assigned to the user.
+     */
     public void setUsername(String username) {
         this.username = username;
     }
 
+    /**
+     * Sets the user's email
+     * 
+     * @param email The email assigned to the user.
+     */
     public void setEmail(String email) {
         this.email = email;
     }
 
+    /**
+     * Sets the user's password.
+     * 
+     * @param password The password assigned to the user.
+     */
     public void setPassword(String password) {
         this.password = password;
     }
 
+    /**
+     * Sets the users role(s).
+     * 
+     * @param roles The role(s) assigned to the user.
+     */
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
     }
