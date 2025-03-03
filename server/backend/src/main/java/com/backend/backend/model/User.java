@@ -5,6 +5,8 @@ import java.util.Set;
 
 import org.hibernate.annotations.NaturalId;
 
+import com.backend.backend.model.audit.DateAudit;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -34,7 +36,7 @@ import jakarta.validation.constraints.Size;
         "email"
     })
 })
-public class User {
+public class User extends DateAudit{
     // ===============
     // Database Fields
     // ===============
