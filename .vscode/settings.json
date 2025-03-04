@@ -1,4 +1,13 @@
 {
+  // Set prettier to format on save
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+
+  // Apply ESLint fixes as well on save
+  // whenever you save a file:
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true
+  },
     "java.compile.nullAnalysis.mode": "automatic",
     "java.configuration.updateBuildConfiguration": "automatic",
     "sqltools.connections": [
@@ -19,3 +28,4 @@
         }
     ]
 }
+

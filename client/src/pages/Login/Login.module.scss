@@ -1,0 +1,28 @@
+.loginPage {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .loginContainer {
+    min-width: 400px;
+    max-width: 600px;
+    padding: 20px;
+
+    h2 {
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    button {
+      padding: 8px;
+      cursor: pointer;
+    }
+  }
+}
