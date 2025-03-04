@@ -4,6 +4,7 @@ import Register from "./pages/Register/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home/Home";
 import PublicRoute from "./components/PublicRoute";
+import List from "./pages/List/List.tsx";
 
 function App() {
   return (
@@ -35,6 +36,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+          <Route
+            path="/list/:listId"
+            element={
+              <ProtectedRoute>
+                  <List />
+              </ProtectedRoute>
+            }
+          />
         {/*Handle unknown routes with 404 message*/}
         <Route path="*" element={<h2>404 Not Found</h2>} />
       </Routes>

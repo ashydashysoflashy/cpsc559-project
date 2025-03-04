@@ -1,0 +1,77 @@
+//TODO: temp, change to match the homepage
+
+.topMenu {
+  background-color: #333138;
+  color: #FFFFFA;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+
+  a {
+    padding: 15px;
+    color: #FFFFFA;
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: #a3a39f;
+  }
+}
+
+.listContainer {
+  width: 50%;
+  margin: 20px auto;
+  text-align: center;
+}
+
+.header {
+  padding: 30px 0 20px 0;
+
+  h2 {
+    color: black;
+  }
+
+  h3 {
+    color: gray;
+    font-weight: normal;
+
+    //margin-bottom: 20px;
+  }
+}
+
+.listItems {
+  background: #EEEEEE;
+  padding: 30px;
+  border: none;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 10px;
+  border: 1px solid grey;
+  justify-content: space-between;
+  box-shadow: rgba(0, 0, 0, 0.15) 2px 2px 2px;
+  overflow:auto;
+
+  button {
+    border: none;
+    background: none;
+    font-weight: bold;
+    font-size: 12pt;
+  }
+}
+
+.deleteButton {
+  color: #FF312E;
+}
+
+.completed {
+  text-decoration: line-through;
+  color: gray;
+}
