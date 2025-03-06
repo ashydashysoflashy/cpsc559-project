@@ -6,6 +6,6 @@
   // Apply ESLint fixes as well on save
   // whenever you save a file:
   "editor.codeActionsOnSave": {
-    "source.fixAll": true
+    "source.fixAll": "explicit"
   }
 }
