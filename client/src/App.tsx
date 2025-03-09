@@ -5,6 +5,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home/Home";
 import PublicRoute from "./components/PublicRoute";
 import List from "./pages/List/List.tsx";
+import CreateList from "./pages/CreateList/CreateList.tsx";
 
 function App() {
   return (
@@ -36,14 +37,22 @@ function App() {
             </ProtectedRoute>
           }
         />
-          <Route
-            path="/list/:listId"
+        <Route
+            path="/create-list"
             element={
               <ProtectedRoute>
-                  <List />
+                <CreateList />
               </ProtectedRoute>
             }
-          />
+        />
+        <Route
+          path="/list/:listId"
+          element={
+            <ProtectedRoute>
+                <List />
+            </ProtectedRoute>
+          }
+        />
         {/*Handle unknown routes with 404 message*/}
         <Route path="*" element={<h2>404 Not Found</h2>} />
       </Routes>
