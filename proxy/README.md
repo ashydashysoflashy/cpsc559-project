@@ -5,7 +5,6 @@ This proxy service acts as a gateway for routing API requests from clients to th
 
 ## Features
 - Routes API requests from clients (frontend React project) to the primary backend server.
-- Supports replication to backup servers for write operations (`POST`, `PUT`, `DELETE`).
 - Forwards headers, including authentication tokens, to maintain session status.
 - Dynamically constructs the target URL based on incoming requests.
 
@@ -38,10 +37,7 @@ You can modify `application.properties` to set up the proxy's configuration:
 server.port=8079
 
 # Primary backend (server) URL for local development
-backend.primary.url=http://localhost:8080/api/api
-
-# Backup backend URLs for replication (comma-separated)
-backend.backups.urls=http://backup1:8080/api,http://backup2:8080/api
+backend.primary.url=http://localhost:8081
 ```
 
 ## Project Configuration
@@ -63,6 +59,7 @@ proxy-project
 │   │   │               ├── ProxyApplication.java       # Main application class
 │   │   │               ├── config
 │   │   │               │   └── ProxyConfig.java        # Defines any configuration classes needed (e.g., RestTemplate)
+│   │   │               │   └── ApplicationConfig.java  # Configuration for accessing or updating application properties
 │   │   │               └── controller
 │   │   │                   └── ProxyController.java    # Forwards requests to backend servers
 │   │   └── resources
@@ -91,18 +88,24 @@ A request to the proxy at "http://localhost:8079/api/api/todolists"
 is forwarded to the server at
 "http://localhost:8080/api/api/todolists"
 
+### Update the Primary Server Url
+Updates the url to which the proxy with forward requests.
+```sh
+curl -X POST http://localhost:8079/updatePrimary -H "Content-Type: text/plain" -d "http://localhost:8081" 
+```
+
+### Get the Primary Url
+Gets the current primary server url. This endpoint is primarily for debugging purposes.
+```sh
+curl -X GET "http://localhost:8079/getPrimary"
+```
+
 ## Proxy Logic
 ### Request Forwarding
 - Extracts the full path from the client request.
 - Constructs the appropriate target URL using `backend.primary.url` in `application.properties`.
 - Forwards necessary headers (`Authorization`, `Content-Type`).
 - Forwards the request body.
-
-### Replication for Write Operations
-For `POST`, `PUT`, `DELETE` requests:
-- The primary backend processes the request.
-- The request is also forwarded to all the backup servers for replication.
-- If a backup server fails, an error is logged but does not disrupt the main request.
 
 ## Debugging (optional)
 Enable debug logs in `application.properties`:
