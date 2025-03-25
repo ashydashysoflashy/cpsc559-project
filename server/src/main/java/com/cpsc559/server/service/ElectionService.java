@@ -15,6 +15,9 @@ public class ElectionService {
     @Value("#{'${server.urls}'.split(',')}")
     private List<String> otherServerUrls;
 
+    @Value("${server.url}")
+    private String serverUrl;
+
     // State flags used in the election
     // The 'volatile' keyword ensures updates from one thread, are immediately visible to all other threads.
     private volatile boolean running = false;
@@ -39,7 +42,16 @@ public class ElectionService {
         String senderUrl = message.getSenderUrl();
 
         // rest of implementation goes here...
-    }
+	
+        if (senderUrl.compareTo(serverUrl) < 0) {
+            sendBullyMessage(serverUrl);
+        }
+
+        if (!running) {
+            initiateElection(serverUrl);
+        }
+            
+	}
 
     private void sendLeaderMessage(LeaderMessage message) {
 
@@ -54,5 +66,6 @@ public class ElectionService {
     private void sendBullyMessage(BullyMessage message) {
 
         // used to respond with a bully message
+
     }
 }
