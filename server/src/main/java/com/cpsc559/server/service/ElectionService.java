@@ -3,14 +3,28 @@ package com.cpsc559.server.service;
 import com.cpsc559.server.message.BullyMessage;
 import com.cpsc559.server.message.ElectionMessage;
 import com.cpsc559.server.message.LeaderMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 // Main implementation of the bully election algorithm.
 @Service
 public class ElectionService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ElectionService.class);
+
+    private final WebClient webClient;
+
+    @Value("${server.url}")
+    private String serverUrl;
 
     @Value("#{'${server.urls}'.split(',')}")
     private List<String> otherServerUrls;
@@ -23,8 +37,13 @@ public class ElectionService {
     private volatile boolean running = false;
     private volatile String leaderUrl = null;
 
+    public ElectionService(WebClient webClient) {
+        this.webClient = webClient;
+    }
+
     // Our implementation of the Initiate_Election(int i) pseudocode from class
-    public void initiateElection(String url) {
+    public void initiateElection() {
+        logger.info("Initiating election.");
         running = true;
 
         // rest of implementation goes here...
@@ -67,5 +86,42 @@ public class ElectionService {
 
         // used to respond with a bully message
 
+    }
+
+    @Scheduled(fixedRate = 15, timeUnit = TimeUnit.SECONDS)
+    public void heartbeat() {
+        if (!isLeader()) {
+            if (leaderUrl == null) {
+                if (!running) {
+                    initiateElection();
+                }
+                return;
+            }
+
+            // Sends /health request to the primary
+            String uri = leaderUrl + "/api/health";
+            logger.info("Sending health request to {}", uri);
+
+            // Build the request object and send it
+            webClient.get()
+                    .uri(uri)
+                    .accept(MediaType.ALL)
+                    .retrieve()
+                    .toEntity(String.class)
+                    .timeout(Duration.ofSeconds(5))
+                    .doOnError(e -> {
+                        // Server didn't respond in time - initiate the election process
+                        logger.info("Health check failed.");
+                        if (!running) {
+                            initiateElection();
+                        }
+                    })
+                    .subscribe();
+        }
+    }
+
+    // True if the current server is the leader
+    private boolean isLeader() {
+        return serverUrl.equals(leaderUrl);
     }
 }
