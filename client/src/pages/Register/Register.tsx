@@ -93,8 +93,13 @@ function Register() {
         username,
         password,
       });
+
       setSuccess(true);
-      navigate("/");
+
+      //waiting 5 seconds before redirecting so they can see the success message
+      setTimeout(() => {
+        navigate("/");
+      }, 3000);
     } catch (err) {
       console.error(err);
       if (axios.isAxiosError(err) && err.response?.status === 500) {
