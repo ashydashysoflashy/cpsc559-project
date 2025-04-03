@@ -1,8 +1,13 @@
 import React from "react";
+import axios from "axios";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
 import styles from "./Login.module.scss";
+import FormField from "../../components/FormField/FormField";
+import GradientButton from "../../components/GradientButton/GradientButton";
+import { LockOutlined, PersonOutline } from "@mui/icons-material";
+import { Alert, Divider, Typography } from "@mui/material";
 
 // Define an interface for what we expect in the response
 interface LoginResponse {
@@ -12,6 +17,7 @@ interface LoginResponse {
 function Login() {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [displayError, setDisplayError] = useState(false);
 
   const navigate = useNavigate();
 
@@ -33,32 +39,65 @@ function Login() {
       navigate("/home");
     } catch (err) {
       console.error(err);
-      alert("Login failed");
+      if (axios.isAxiosError(err) && err.response?.status === 500) {
+        setDisplayError(true);
+      }
     }
   };
 
   return (
     <div className={styles.loginPage}>
+      {displayError && (
+        <Alert
+          variant="filled"
+          severity="error"
+          className={styles.invalidLogin}
+        >
+          The username or password you entered is incorrect.
+        </Alert>
+      )}
       <div className={styles.loginContainer}>
+        <div className={styles.loginAvatar}>
+          <LockOutlined sx={{ color: "white", fontSize: 30 }} />
+        </div>
         <h2>Login</h2>
-        <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder="Username"
+        <form className={styles.form} onSubmit={handleSubmit}>
+          <FormField
+            label="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            icon={<PersonOutline />}
           />
-          <input
+          <FormField
+            label="Password"
             type="password"
-            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            icon={<LockOutlined />}
+            showToggle={true}
           />
-          <button type="submit">Login</button>
+          <GradientButton
+            type="submit"
+            sx={{
+              width: "40%",
+              margin: "0 auto",
+              marginBottom: "30px",
+              marginTop: "10px",
+            }}
+          >
+            Log in
+          </GradientButton>
         </form>
-        <p style={{ marginTop: "10px" }}>
-          Don't have an account? <a href="/register">Register</a>
-        </p>
+        <Divider
+          sx={{
+            my: 2,
+            width: "80%",
+            margin: "0 auto",
+          }}
+        />
+        <Typography variant="body2" className={styles.loginLinkText}>
+          Don't have an account? <Link to="/register">Register Now!</Link>
+        </Typography>
       </div>
     </div>
   );

@@ -1,7 +1,17 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
 import styles from "./Register.module.scss";
+import FormField from "../../components/FormField/FormField";
+import GradientButton from "../../components/GradientButton/GradientButton";
+import { Alert, Divider, Typography, FormHelperText } from "@mui/material";
+import {
+  EmailOutlined,
+  PersonOutline,
+  LockOutlined,
+  Lock,
+} from "@mui/icons-material";
 
 interface RegisterResponse {
   message: string;
@@ -12,6 +22,13 @@ function Register() {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [success, setSuccess] = useState(false);
+  const [failure, setFailure] = useState(false);
+
+  const [emailError, setEmailError] = useState("");
+  const [usernameError, setUsernameError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
   const navigate = useNavigate();
 
@@ -40,76 +57,158 @@ function Register() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Validate the email string
+    let hasError = false;
+    setEmailError("");
+    setUsernameError("");
+    setPasswordError("");
+    setConfirmPasswordError("");
+
     if (!validateEmail(email)) {
-      alert("Please enter a valid e-mail address.");
-      return;
+      setEmailError("Please enter a valid e-mail address.");
+      hasError = true;
     }
 
-    // Check both password fields match
-    if (password !== confirmPassword) {
-      alert("Passwords do not match");
-      return;
+    if (username.length < 3) {
+      setUsernameError("Username must be at least 3 characters.");
+      hasError = true;
     }
 
-    // Validate the password
     if (!validatePassword(password)) {
-      alert(
-        "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character."
+      setPasswordError(
+        "Password must be at least 8 characters, with uppercase, lowercase, number, and special character."
       );
-      return;
+      hasError = true;
     }
+
+    if (password !== confirmPassword) {
+      setConfirmPasswordError("Passwords do not match.");
+      hasError = true;
+    }
+
+    if (hasError) return;
 
     try {
-      // Send registration request
       const res = await api.post<RegisterResponse>("/api/auth/register", {
         email,
         username,
         password,
       });
 
-      alert(res.data.message || "Registration successful");
-      navigate("/"); // Redirect to login after registration
+      setSuccess(true);
+
+      //waiting 5 seconds before redirecting so they can see the success message
+      setTimeout(() => {
+        navigate("/");
+      }, 3000);
     } catch (err) {
       console.error(err);
-      alert("Registration failed");
+      if (axios.isAxiosError(err) && err.response?.status === 500) {
+        setFailure(true);
+      }
     }
   };
 
   return (
     <div className={styles.registerPage}>
+      {success && (
+        <Alert
+          variant="filled"
+          severity="success"
+          className={styles.successMessage}
+        >
+          Account registered successfully!
+        </Alert>
+      )}
+      {failure && (
+        <Alert
+          variant="filled"
+          severity="error"
+          className={styles.failureMessage}
+        >
+          Something went wrong. Please try again.
+        </Alert>
+      )}
       <div className={styles.registerContainer}>
-        <h2>Register</h2>
+        <h2>Create Account</h2>
         <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder="Email"
+          <FormField
+            label="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            icon={<EmailOutlined />}
           />
-          <input
-            type="text"
-            placeholder="Username"
+          {emailError && <FormHelperText error>{emailError}</FormHelperText>}
+          <FormField
+            label="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            icon={<PersonOutline />}
           />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
-          <button type="submit">Register</button>
+          {usernameError && (
+            <FormHelperText error>{usernameError}</FormHelperText>
+          )}
+          <div className={styles.passwordRow}>
+            <div>
+              <FormField
+                label="Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                icon={<LockOutlined />}
+                showToggle={true}
+                error={!!passwordError}
+              />
+              {passwordError && (
+                <FormHelperText
+                  error
+                  sx={{ marginTop: "-10px", marginLeft: "14px" }}
+                >
+                  {passwordError}
+                </FormHelperText>
+              )}
+            </div>
+            <div>
+              <FormField
+                label="Confirm Password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                icon={<Lock />}
+                showToggle={true}
+                error={!!confirmPasswordError}
+              />
+              {confirmPasswordError && (
+                <FormHelperText
+                  error
+                  sx={{ marginTop: "-10px", marginLeft: "14px" }}
+                >
+                  {confirmPasswordError}
+                </FormHelperText>
+              )}
+            </div>
+          </div>
+          <GradientButton
+            type="submit"
+            sx={{
+              width: "40%",
+              margin: "0 auto",
+              marginTop: "10px",
+              marginBottom: "30px",
+            }}
+          >
+            Register
+          </GradientButton>
         </form>
-        <p style={{ marginTop: "10px" }}>
-          Already have an account? <a href="/">Login</a>
-        </p>
+        <Divider
+          sx={{
+            my: 2,
+            width: "80%",
+            margin: "0 auto",
+          }}
+        />
+        <Typography variant="body2" className={styles.registerLinkText}>
+          Already have an account? <Link to="/">Log in</Link>
+        </Typography>
       </div>
     </div>
   );
