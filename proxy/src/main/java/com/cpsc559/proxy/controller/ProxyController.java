@@ -62,24 +62,23 @@ public class ProxyController {
 
             // Build the request object and send it
             return webClient
-                    .method(method)                                                                 // Set HTTP method
-                    .uri(targetUrl)                                                                 // Set target URL
-                    .headers(httpHeaders -> httpHeaders.addAll(headers))                // Add headers
-                    .bodyValue(body != null ? body : "")                                            // Set request body
-                    .retrieve()                                                                     // Send request
-                    .toEntity(String.class);                                                        // Parse response
-        }).retryWhen(
-            Retry.backoff(5, Duration.ofMillis(500)) // Retry 5 times with exponential backoff
-                    .doBeforeRetry(retrySignal -> logger.warn("Retrying request {} (attempt {} of 5)", requestPath, retrySignal.totalRetries() + 1))
-                    .filter(throwable -> // Only retry on timeouts and connection errors
-                            throwable instanceof TimeoutException
-                            || throwable instanceof WebClientRequestException
-                    )
-                    .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
-                        logger.info("No server responded after 5 retries, dropping request to {}", requestPath);
-                        throw new RuntimeException("No server responded after 5 retries");
-                    })
-        ).onErrorResume(ignore -> Mono.empty());
+                    .method(method)                                                     // Set HTTP method
+                    .uri(targetUrl)                                                     // Set target URL
+                    .headers(httpHeaders -> httpHeaders.addAll(headers))    // Add headers
+                    .bodyValue(body != null ? body : "")                                // Set request body
+                    .retrieve()                                                         // Send request
+                    .toEntity(String.class);})                                          // Parse response
+                .retryWhen(
+                    Retry.backoff(5, Duration.ofMillis(500)) // Retry 5 times with exponential backoff
+                            .doBeforeRetry(retrySignal -> logger.warn("Retrying request {} (attempt {} of 5)", requestPath, retrySignal.totalRetries() + 1))
+                            .filter(throwable -> // Only retry on timeouts and connection errors
+                                    throwable instanceof TimeoutException || throwable instanceof WebClientRequestException
+                            )
+                            .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
+                                logger.info("Server did not respond after 5 retries, dropping request to {}", requestPath);
+                                throw new RuntimeException("Server did not respond");
+                            }))
+                .onErrorResume(ignore -> Mono.empty());
     }
 
     /**
