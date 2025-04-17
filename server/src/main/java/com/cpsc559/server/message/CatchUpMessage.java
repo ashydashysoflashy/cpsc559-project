@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class LeaderMessage {
+public class CatchUpMessage {
     public int since;
-    private String leaderUrl;
+    public String serverUrl;
 }

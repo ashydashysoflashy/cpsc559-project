@@ -39,7 +39,12 @@ public class ReceiveMessageService extends OncePerRequestFilter {
     @Autowired
     private UpdateQueue updateQueue;
 
+    @Autowired
+    UpdateLogService updateLogService;
+
     private final WebClient webClient;
+    @Autowired
+    private LogicalClock logicalClock;
 
     public ReceiveMessageService(WebClient webClient) {
         this.webClient = webClient;
@@ -53,26 +58,34 @@ public class ReceiveMessageService extends OncePerRequestFilter {
 
         boolean currentServerIsPrimary = electionService.isLeader();
         boolean requestIsWriteOperation = isWriteOperation(cachingRequest);
+        boolean requestIsCatchUpReplay = cachingRequest.getHeader("X-Catchup") != null;
 
         if (requestIsWriteOperation) {
             if (currentServerIsPrimary) {
                 filterChain.doFilter(cachingRequest, response);
                 int timestamp = LogicalClock.getAndIncrementTimestamp();
 
-                logger.info("Broadcasting request with timestamp {}", timestamp);
-                forwardToBackups(cachingRequest, timestamp);
+                updateLogService.saveToLog(cachingRequest, timestamp);
+                
+                // only forward non-catch up messages
+                if (!requestIsCatchUpReplay) {
+                    logger.info("Broadcasting request with timestamp {}", timestamp);
+                    forwardToBackups(cachingRequest, timestamp);
+                } else {
+                    logger.info("Received catch up request with timestamp {}", timestamp);
+                }
 
             } else {
                 // Check if asynchronous processing has already been started.
                 AsyncContext asyncContext;
                 if (!cachingRequest.isAsyncStarted()) {
-                    asyncContext = cachingRequest.startAsync();
+                    asyncContext = cachingRequest.startAsync(cachingRequest, response);
                 } else {
                     asyncContext = cachingRequest.getAsyncContext();
                 }
 
                 int timestamp = Integer.parseInt(cachingRequest.getHeader("Update-Timestamp"));
-                UpdateMessage updateMessage = new UpdateMessage(timestamp, asyncContext);
+                UpdateMessage updateMessage = new UpdateMessage(timestamp, asyncContext, cachingRequest);
 
                 logger.info("Received request with timestamp {}, enqueuing", timestamp);
                 updateQueue.enqueue(updateMessage);
@@ -146,7 +159,8 @@ public class ReceiveMessageService extends OncePerRequestFilter {
         boolean isDatabaseOperation = !requestUri.contains("health") &&
                 !requestUri.contains("election") &&
                 !requestUri.contains("leader") &&
-                !requestUri.contains("login");
+                !requestUri.contains("login") &&
+                !requestUri.contains("catchup");
 
         // Ensure all are true
         return isWriteRequest && isApiCall && isDatabaseOperation;

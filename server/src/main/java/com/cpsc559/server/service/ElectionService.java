@@ -1,8 +1,10 @@
 package com.cpsc559.server.service;
 
 import com.cpsc559.server.message.BullyMessage;
+import com.cpsc559.server.message.CatchUpMessage;
 import com.cpsc559.server.message.ElectionMessage;
 import com.cpsc559.server.message.LeaderMessage;
+import com.cpsc559.server.sync.LogicalClock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,6 +51,8 @@ public class ElectionService {
     // Promise/signal needed to check if a leader message was received
     private volatile Sinks.One<String> leaderSignal;
 
+    private volatile boolean catchupDone = false;
+
 
     public ElectionService(WebClient webClient) {
         this.webClient = webClient;
@@ -71,7 +75,7 @@ public class ElectionService {
 
         if (hasHighestId()) { // Automatically wins election
             leaderUrl = serverUrl;
-            sendLeaderMessage(new LeaderMessage(serverUrl));
+            sendLeaderMessage(new LeaderMessage(LogicalClock.getTimestamp(), serverUrl));
 
         } else {
             ElectionMessage electionMessage = new ElectionMessage(serverUrl);
@@ -91,7 +95,7 @@ public class ElectionService {
                                     });
                         } else {
                             leaderUrl = serverUrl;
-                            sendLeaderMessage(new LeaderMessage(serverUrl));
+                            sendLeaderMessage(new LeaderMessage(LogicalClock.getTimestamp(), serverUrl));
                         }
                     });
         }
@@ -111,6 +115,10 @@ public class ElectionService {
         if (leaderSignal != null) {
             leaderSignal.tryEmitValue(leaderUrl);
         }
+
+        int timestamp = LogicalClock.getTimestamp();
+        CatchUpMessage catchUpMessage = new CatchUpMessage(timestamp, serverUrl);
+        sendCatchupMessage(catchUpMessage);
     }
 
     // Case: received message is election message
@@ -238,5 +246,19 @@ public class ElectionService {
     // True if the current server is the leader
     public boolean isLeader() {
         return serverUrl.equals(leaderUrl);
+    }
+
+    // Helper method to send the leader a request to /catchup
+    private void sendCatchupMessage(CatchUpMessage message) {
+        if (catchupDone || isLeader() || leaderUrl == null) return;
+        logger.info("Sending catchup message to leader at {}", leaderUrl);
+        webClient.post()
+                .uri(leaderUrl + "/api/catchup")
+                .bodyValue(message)
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+
+        catchupDone = true;
     }
 }

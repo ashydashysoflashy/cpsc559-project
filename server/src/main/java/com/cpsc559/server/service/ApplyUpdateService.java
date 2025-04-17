@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.ContentCachingRequestWrapper;
 
 
 @Service
@@ -21,6 +22,9 @@ public class ApplyUpdateService {
 
     @Autowired
     private UpdateQueue updateQueue;
+
+    @Autowired
+    UpdateLogService updateLogService;
 
     @PostConstruct
     public void startUpdateProcessor() {
@@ -65,6 +69,8 @@ public class ApplyUpdateService {
     private void applyUpdate(UpdateMessage updateMessage) {
         AsyncContext asyncContext = updateMessage.getAsyncContext();
         HttpServletRequest request = (HttpServletRequest) asyncContext.getRequest();
+        ContentCachingRequestWrapper wrapper = updateMessage.getRequestWrapper();
+
         String targetUri = request.getRequestURI();
 
         logger.info("Applying update with timestamp {}. Forwarding request to URI: {}", updateMessage.getTimestamp(), targetUri);
@@ -73,7 +79,11 @@ public class ApplyUpdateService {
         asyncContext.addListener(new AsyncListener() {
             @Override
             public void onComplete(AsyncEvent event) {
-                // No logging needed here
+                try {
+                    updateLogService.saveToLog(wrapper, updateMessage.getTimestamp());
+                } catch (Exception e) {
+                    logger.error("Failed to log update {}", updateMessage.getTimestamp(), e);
+                }
             }
 
             @Override
@@ -94,7 +104,7 @@ public class ApplyUpdateService {
 
         try {
             // dispatch the request as normal (send to the appropriate controller method)
-            asyncContext.dispatch(targetUri);
+            asyncContext.dispatch();
         } catch (IllegalStateException e) {
             logger.error("Error forwarding update with timestamp {} to URI: {}. Exception: {}",
                     updateMessage.getTimestamp(), targetUri, e.getMessage(), e);
