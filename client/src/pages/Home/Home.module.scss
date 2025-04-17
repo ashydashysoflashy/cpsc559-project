@@ -36,6 +36,7 @@
   flex-direction: column;
   align-items: center;
   max-height: 500px;
+  min-height: 400px;
   overflow-y: scroll;
   overflow-x: hidden;
 }
@@ -85,4 +86,23 @@
 
 .iconSpacing {
   font-size: 18px;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: darkgrey;
+  height: 100%;
+  text-align: center;
+}
+
+.emptyMessageBold {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.emptyMessageSub {
+  font-weight: normal;
 }

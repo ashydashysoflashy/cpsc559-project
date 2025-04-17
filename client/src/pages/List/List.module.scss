@@ -1,5 +1,26 @@
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 .topMenu {
-  background-color: #333138;
+  background: linear-gradient(
+    45deg,
+    #512eab,
+    #ad8cff,
+    #8795e8,
+    #94d0ff,
+    #8cebff
+  );
+  background-size: 400% 400%;
+  animation: gradient 7s ease-in-out infinite;
   color: #FFFFFA;
   display: flex;
   align-items: center;

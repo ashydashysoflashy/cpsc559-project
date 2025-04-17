@@ -93,17 +93,18 @@ function List() {
           <h3>by {listAuthor}</h3>
         </div>
         <div className={styles.listItems}>
-          {tasks.map((task) => (
-            <Task
-              key={task.id}
-              listId={listId}
-              itemId={task.id}
-              name={task.title}
-              completed={task.completed}
-              deleteTask={(id) => deleteTask(id)}
-            />
-          ))}
-          {tasks.length === 0 && (
+          {Array.isArray(tasks) && tasks.length > 0 ? (
+            tasks.map((task) => (
+              <Task
+                key={task.id}
+                listId={listId}
+                itemId={task.id}
+                name={task.title}
+                completed={task.completed}
+                deleteTask={(id) => deleteTask(id)}
+              />
+            ))
+          ) : (
             <>
               <h4>No tasks yet!</h4>
               <p>Click "Add a Task" below to create a new task</p>
