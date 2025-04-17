@@ -210,7 +210,7 @@ public class ElectionService {
                 .defaultIfEmpty(false); // If no trues (no bully messages), return false
     }
 
-    @Scheduled(fixedRate = 15, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(fixedRate = 5, timeUnit = TimeUnit.SECONDS)
     public void heartbeat() {
         if (!isLeader()) {
             if (leaderUrl == null) {
