@@ -66,21 +66,6 @@ function Home() {
   }
 
   const handleEditList = async (listId: number) => {
-    // for when we implement sharing
-    // try {
-    //   const listRes = await api.get(`/api/todolists/${listId}`);
-    //   const listAuthor = listRes.data.author;
-
-    //   if (!currentUser || currentUser.username !== listAuthor) {
-    //     alert("You do not have permission to edit this list.");
-    //     return;
-    //   }
-    //   navigate(`/list?listId=${listId}`);
-    // } catch (err) {
-    //   console.error("Failed to retrieve list details:", err);
-    //   alert("Failed to retrieve list details.");
-    //   setError(true);
-    // }
     navigate(`/list/${listId}`);
   };
 
@@ -112,29 +97,38 @@ function Home() {
       <div className={styles.mainContent}>
         <h2 className={styles.title}>All Lists</h2>
         <div className={styles.listContainer}>
-          {lists.map((list) => (
-            <div key={list.id} className={styles.listItem}>
-              <span>
-                {list.name} <em>(@{list.author || "Loading..."})</em>
-              </span>
-              <div>
-                <button
-                  className={styles.iconButton}
-                  onClick={() => handleEditList(list.id)}
-                >
-                  <FontAwesomeIcon icon={faPencil} />
-                </button>
-                {currentUser?.username === list.author && (
+          {Array.isArray(lists) && lists.length > 0 ? (
+            lists.map((list) => (
+              <div key={list.id} className={styles.listItem}>
+                <span>
+                  {list.name} <em>(@{list.author || "Loading..."})</em>
+                </span>
+                <div>
                   <button
-                    className={styles.deleteButton}
-                    onClick={() => handleDeleteList(list.id)}
+                    className={styles.iconButton}
+                    onClick={() => handleEditList(list.id)}
                   >
-                    <FontAwesomeIcon icon={faTrash} />
+                    <FontAwesomeIcon icon={faPencil} />
                   </button>
-                )}
+                  {currentUser?.username === list.author && (
+                    <button
+                      className={styles.deleteButton}
+                      onClick={() => handleDeleteList(list.id)}
+                    >
+                      <FontAwesomeIcon icon={faTrash} />
+                    </button>
+                  )}
+                </div>
               </div>
+            ))
+          ) : (
+            <div className={styles.emptyState}>
+              <span className={styles.emptyMessageBold}>No lists yet!</span>
+              <span className={styles.emptyMessageSub}>
+                Click "Create List" below to get started
+              </span>
             </div>
-          ))}
+          )}
         </div>
 
         <button className={styles.addBtn} onClick={handleCreateList}>
